@@ -8,7 +8,7 @@
 #define false 0
 #define MaxMemory 100
 
-int x,y, TotalMoves, grid_size, sequence_number, gridFull, PossibleMoves, win_decision;
+int x,y, TotalMoves, grid_size, sequence_number, gridFull, PossibleMoves;
 char letter = 'X';
 int successfulMove = 1;
 
@@ -44,40 +44,47 @@ int init_grid() {
 
 
 
- //Checks if the player won
-int player_won (char letter) {
- int diagonal = 0, SecondDiagonal= 0;
-//to simplify the coming lines
- for (int n = 0; n < grid_size; n++) // a loop to check the vertical and horizontal lines for a winner
+//Checks if the player won
+int player_won () {
+
+ 
+ // a loop to check the vertical and horizontal lines for a winner
+ for (int n = 0; n < grid_size; n++)
  {
    int vertical = 0, horizontal = 0;
 	 for(int m = 0; m < grid_size; m++)
 	 {
-		 if ( grid[m][n] == letter) // to check if the letter exist in a vertical line
+         // to check if the letter exist in a vertical line
+         if ( grid[m][n] == letter)
 	 	    vertical += 1;
-
-	 	 if ( grid[n][m] == letter) // to check if the letter exist in a horizontal line
+        
+        // to check if the letter exist in a horizontal line
+	 	 if ( grid[n][m] == letter)
 			  horizontal += 1;
 
-	 	 if (vertical == grid_size || horizontal == grid_size) // to check if the line fully have the same letter and therefore there is a winner (vertical or horizontal)
+        // to check if the line fully have the same letter and therefore there is a winner (vertical or horizontal)
+	 	 if (vertical == grid_size || horizontal == grid_size)
 		   return true;
 	 }
  }
+ int diagonal = 0, SecondDiagonal= 0;
 
-  for ( int n=0; n < grid_size; n++) // a loop to check the diagonal line and second diagonal for  winner
+ // a loop to check the diagonal line and second diagonal for  winner
+  for ( int n=0; n < grid_size; n++)
   {
-
-		if (grid[n][n] == letter) // to find if if there is a winner in diagonal
+      // to find if if there is a winner in diagonal
+		if (grid[n][n] == letter) 
 		   diagonal += 1;
 
-		if (grid[grid_size-n-1][n] == letter) // to find if there is a winner diagonal
+        // to find if there is a winner diagonal
+		if (grid[grid_size-n-1][n] == letter)
 		   SecondDiagonal+= 1;
 
-		if (diagonal == grid_size || SecondDiagonal == grid_size) // to see if the line is all with the same letter
+        // to see if the line is all with the same letter
+		if (diagonal == grid_size || SecondDiagonal == grid_size)
        return true;
 	}
-
-return false;
+    return false;
 }
 
 
@@ -169,25 +176,24 @@ void player () {
         scanf("%i,%i", &x, &y);
         }
 
+    //checking if the move is successful to update the grid
     int move = make_move( x, y, letter);
 	if (move) {
 		// countung the number of successful Moves
 		successfulMove++;
 		grid[x][y] = letter;
-
-        printf("%i,%i", x, y);
 	}
 
 	// if the move was not successful it tells the player that they should have another input
 	else
 	{
-        // prints an error message if point is already occupied.
+        // prints an error message if point is already occupied
         if(grid[x][y] != '.' && (x >=0 && x< grid_size) && (y>=0 &&y<grid_size))
         {
             printf("\n ******** Invalid choice: point is already occupied. Please try again. ********\n"); 
         }
 
-        //prints an error message if chosen numbers are out of the range.
+        //prints an error message if chosen numbers are out of the range
         else {printf("\n******** Invalid input: point is out of range. Please try again. ********\n"); }
 
         //recalls the function to ask for input
@@ -195,31 +201,54 @@ void player () {
 	}
  }
 
-// this functio n replaies the played moves
+//replays the move
+ int currentMove(int movesLeft){
+     int answer = 0;
+
+     movesLeft--;
+     if (movesLeft > 0) // if there are still moves it continues to ask
+     {
+         sequence_number++;
+         replay_move(sequence_number);
+         printf("Do you want to replay the next Move?\n");
+         printf("1- Choose 1 for Yes.\n");
+         printf("2- Choose 2 for No.\n");
+         scanf("%i", &answer);
+         if(answer == 1 || answer == 2){
+             return answer;
+         }
+    }
+    return 0;
+ }
+
+// this function replaies the played moves
 void replayGame() { 
-	int Answer, sequence_number=0;
-	int MovesLeft = TotalMoves;
+	int answer, sequence_number=0;
+    int movesLeft = TotalMoves;
 
 	// loops while the player chooses 1 to replay the sequence_number move
-	printf("Do you want to replay the game moves, Yes=1, No=2 ?");
-	scanf("%i", &Answer);
-	while ( MovesLeft >0)
+	printf("Do you want to replay the game moves, Yes=1, No=2 ?\n");
+    printf("1- Choose 1 for Yes.\n");
+    printf("2- Choose 2 for No.\n");
+
+	scanf("%i", &answer);
+
+    if ( answer == 1){
+        while ( movesLeft > 0)
 	{
-		if (Answer == 1)
-		{
-			MovesLeft--;
-			if (MovesLeft > 0) // if there are still moves it continues to ask
-      {
-				sequence_number++;
-			  replay_move(sequence_number);
-			  printf("Do you want to replay the next Move Yes==1, No=2?");
-			}
-		}
-		if ( Answer == 2) // if the player chooses 2 the program stops
+        int replayMove = currentMove(movesLeft);
+		if ( replayMove == 2) // if the player chooses 2 the program stops
 			exit(0);
+        // if choice is wrong it tells the player that it is wrong
 		else
-			printf("Input invalid choose yes=1 if you want to replay or 2 (No)"); // if choice is wrong it tells the player that it is wrong
+			printf("Input is invalid. choose yes=1\n");
+            currentMove(movesLeft);
 		}
+    }
+    else if (answer != 2){
+        printf("Input is invalid. choose yes=1\n");
+        replayGame();
+    }
 }
 
 
@@ -239,9 +268,11 @@ int main() {
 		printf("\nInvalid grid size: Please choose a grid size for the Game between 3 and 10 inclusive: "); // asking the user for grid size
 		scanf("%i", &grid_size);
 	}
-    
-    init_grid(); // calling the previously written function to use its values
+
+    // calling the previously written function to use its values
+    init_grid(); 
     char status= 'a';
+    int win_decision = false;
 
 	while (status == 'a') // game c
 	{
@@ -249,23 +280,32 @@ int main() {
 		game_board(grid_size);
 	
 		player();
-		// player_won(letter);
-		// if (win_decision == true){status = 'b';}
-		// else if (win_decision == false && successfulMove == PossibleMoves){status = 'c';}
-		// else{status = 'a';}
+		// player_won();
+        //decides whether a player won or not
+        win_decision = player_won(); 
+		if (win_decision == true){status = 'b';}
+		else if (win_decision == false && successfulMove == PossibleMoves){status = 'c';}
+		else{status = 'a';}
 	}
 
-	// if (status == 'b')
-	// {
-	// 	printf("%c won the game\n", letter); // informing players of a win
-	// }
-	// if (status == 'c')
-	// {
-	// 	printf(" Game is over nobody won\n"); // if the grid is full and nobody won
-	// }
+	if (status == 'b')
+	{
+        // informing players of a win
+        printf("\n***************************************************************************\n");
+        printf("\n****************************** Winning State ******************************\n");
+        printf("\n***************************************************************************\n");
+		printf("\n***************************** %c Won The Game *****************************\n", letter);
+	}
+    // if the grid is full and nobody won
+	else if (status == 'c')
+	{
+        printf("\n***************************************************************************\n");
+        printf("\n************************* Game is over nobody won *************************\n");
+        printf("\n***************************************************************************\n");
+	}
 
 	// if (status == 'b' || status == 'c'){
-	// 	// replayGame();
+	// 	replayGame();
 	// }
 
 
